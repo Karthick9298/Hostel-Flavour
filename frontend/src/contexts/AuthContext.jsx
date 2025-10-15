@@ -122,6 +122,8 @@ export const AuthProvider = ({ children }) => {
       const idToken = await firebaseUser.getIdToken();
       localStorage.setItem('firebaseToken', idToken);
 
+      console.log('Firebase ID token obtained');
+      console.log(idToken);// remove this in future
       // Sync user data with our backend
       const response = await authAPI.syncUser();
       

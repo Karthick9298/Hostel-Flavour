@@ -75,4 +75,14 @@ export const userAPI = {
   getStats: () => api.get('/users/stats/overview'),
 };
 
+export const menuAPI = {
+  getCurrentWeek: () => api.get('/menu/current'),
+  getToday: () => api.get('/menu/today'),
+  getByDate: (date) => api.get(`/menu/date/${date}`),
+  createWeekly: (data) => api.post('/menu/weekly', data),
+  getAllWeekly: (params) => api.get('/menu/weekly', { params }),
+  updateWeekly: (id, data) => api.put(`/menu/weekly/${id}`, data),
+  deleteWeekly: (id) => api.delete(`/menu/weekly/${id}`),
+};
+
 export default api;

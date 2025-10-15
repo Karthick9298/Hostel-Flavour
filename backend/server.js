@@ -11,6 +11,7 @@ import authRoutes from './routes/auth-firebase.js';
 import userRoutes from './routes/users.js';
 import feedbackRoutes from './routes/feedback.js';
 import analyticsRoutes from './routes/analytics.js';
+import menuRoutes from './routes/menu.js';
 
 // Load environment variables
 dotenv.config();
@@ -62,6 +63,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/menu', menuRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

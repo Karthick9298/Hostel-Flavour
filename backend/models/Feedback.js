@@ -12,9 +12,10 @@ const feedbackSchema = new mongoose.Schema({
     default: () => {
       // Set to current date in IST, but only date part (no time)
       const now = new Date();
-      const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
-      const istDate = new Date(now.getTime() + istOffset);
-      return new Date(istDate.getFullYear(), istDate.getMonth(), istDate.getDate());
+      const istTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+      const currentDate = new Date(istTime.getFullYear(), istTime.getMonth(), istTime.getDate());
+      currentDate.setHours(0, 0, 0, 0); // Ensure time is 00:00:00.000
+      return currentDate;
     }
   },
   meals: {
@@ -103,41 +104,48 @@ feedbackSchema.index({ date: -1 });
 
 // Method to check if a meal can be submitted based on time
 feedbackSchema.methods.canSubmitMeal = function(mealType) {
+  // Get current time in IST
   const now = new Date();
-  const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
-  const istTime = new Date(now.getTime() + istOffset);
+  // Convert to IST (UTC+5:30)
+  const istTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
   const currentHour = istTime.getHours();
+  
+  console.log(`Debug: Current IST time: ${istTime.toLocaleString()}, Hour: ${currentHour}, Meal: ${mealType}`);
 
   // Check if meal is already submitted
   if (this.meals[mealType].rating !== null) {
     return { canSubmit: false, reason: 'Meal already submitted' };
   }
 
-  // Time-based submission rules
+  // Time-based submission rules - each meal can be submitted from specific time till midnight
   switch (mealType) {
     case 'morning':
+      // Morning meal can be submitted from 9 AM till midnight (11:59 PM)
       if (currentHour >= 9) {
         return { canSubmit: true };
       }
-      return { canSubmit: false, reason: 'Morning meal feedback can only be submitted after 9 AM' };
+      return { canSubmit: false, reason: `Morning meal feedback can only be submitted from 9 AM onwards. Current time: ${currentHour}:00` };
     
     case 'afternoon':
-      if (currentHour >= 12) {
+      // Afternoon meal can be submitted from 1 PM till midnight (11:59 PM)
+      if (currentHour >= 13) {
         return { canSubmit: true };
       }
-      return { canSubmit: false, reason: 'Afternoon meal feedback can only be submitted after 12 PM' };
+      return { canSubmit: false, reason: `Afternoon meal feedback can only be submitted from 1 PM onwards. Current time: ${currentHour}:00` };
     
     case 'evening':
+      // Evening meal can be submitted from 5 PM till midnight (11:59 PM)
       if (currentHour >= 17) {
         return { canSubmit: true };
       }
-      return { canSubmit: false, reason: 'Evening meal feedback can only be submitted after 5 PM' };
+      return { canSubmit: false, reason: `Evening meal feedback can only be submitted from 5 PM onwards. Current time: ${currentHour}:00` };
     
     case 'night':
+      // Night meal can be submitted from 8 PM till midnight (11:59 PM)
       if (currentHour >= 20) {
         return { canSubmit: true };
       }
-      return { canSubmit: false, reason: 'Night meal feedback can only be submitted after 8 PM' };
+      return { canSubmit: false, reason: `Night meal feedback can only be submitted from 8 PM onwards. Current time: ${currentHour}:00` };
     
     default:
       return { canSubmit: false, reason: 'Invalid meal type' };

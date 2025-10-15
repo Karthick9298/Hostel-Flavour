@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import User from './backend/models/User.js';
+import User from '../backend/models/User.js';
 
 const MONGODB_URI = 'mongodb://localhost:27017/hostel-food-analysis';
 

@@ -13,7 +13,6 @@ import Register from './pages/auth/Register';
 import StudentDashboard from './pages/student/Dashboard';
 import AdminDashboard from './pages/admin/Dashboard';
 import Profile from './pages/Profile';
-import TestLogin from './components/TestLogin';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, adminOnly = false }) => {
@@ -70,8 +69,6 @@ const AppRoutes = () => {
         } 
       />
       
-      {/* Test route for debugging */}
-      <Route path="/test" element={<TestLogin />} />
 
       {/* Protected Routes */}
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>

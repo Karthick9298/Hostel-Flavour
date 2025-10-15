@@ -37,11 +37,13 @@ router.post('/submit', [
     const { mealType, rating, comment = '' } = req.body;
     const userId = req.user._id;
 
-    // Get current date in IST
+    // Get current date in IST (date only, no time)
     const now = new Date();
-    const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
-    const istDate = new Date(now.getTime() + istOffset);
-    const currentDate = new Date(istDate.getFullYear(), istDate.getMonth(), istDate.getDate());
+    const istTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+    const currentDate = new Date(istTime.getFullYear(), istTime.getMonth(), istTime.getDate());
+    currentDate.setHours(0, 0, 0, 0); // Ensure time is 00:00:00.000
+
+    console.log(`Debug Feedback Submit: User ${userId}, Current Date: ${currentDate.toISOString()}, IST Time: ${istTime.toLocaleString()}`);
 
     // Find or create feedback document for today
     let feedback = await Feedback.findOne({
@@ -50,6 +52,7 @@ router.post('/submit', [
     });
 
     if (!feedback) {
+      console.log(`Creating new feedback document for user ${userId} on date ${currentDate.toISOString()}`);
       feedback = new Feedback({
         user: userId,
         date: currentDate,
@@ -60,6 +63,9 @@ router.post('/submit', [
           night: { rating: null, comment: '', submittedAt: null }
         }
       });
+    } else {
+      console.log(`Found existing feedback document for user ${userId} on date ${currentDate.toISOString()}`);
+      console.log(`Current meal ${mealType} status:`, feedback.meals[mealType]);
     }
 
     // Check if meal can be submitted
@@ -114,11 +120,11 @@ router.get('/my-feedback', authenticateFirebaseToken, async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // Get current date in IST
+    // Get current date in IST (date only, no time)
     const now = new Date();
-    const istOffset = 5.5 * 60 * 60 * 1000;
-    const istDate = new Date(now.getTime() + istOffset);
-    const currentDate = new Date(istDate.getFullYear(), istDate.getMonth(), istDate.getDate());
+    const istTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+    const currentDate = new Date(istTime.getFullYear(), istTime.getMonth(), istTime.getDate());
+    currentDate.setHours(0, 0, 0, 0); // Ensure time is 00:00:00.000
 
     // Find today's feedback
     let feedback = await Feedback.findOne({
@@ -127,24 +133,36 @@ router.get('/my-feedback', authenticateFirebaseToken, async (req, res) => {
     });
 
     if (!feedback) {
+      console.log(`No feedback found for user ${userId} on date ${currentDate.toISOString()}, creating empty structure`);
       // Create empty feedback structure
       feedback = {
+        _id: null,
+        user: userId,
         date: currentDate,
         meals: {
           morning: { rating: null, comment: '', submittedAt: null },
           afternoon: { rating: null, comment: '', submittedAt: null },
           evening: { rating: null, comment: '', submittedAt: null },
           night: { rating: null, comment: '', submittedAt: null }
-        }
+        },
+        createdAt: currentDate,
+        updatedAt: currentDate
       };
+    } else {
+      console.log(`Found existing feedback for user ${userId} on date ${currentDate.toISOString()}`);
+      console.log('Feedback meals:', JSON.stringify(feedback.meals, null, 2));
     }
 
-    // Get submission statistics
-    const stats = feedback.getSubmissionStats ? feedback.getSubmissionStats() : {
+    // Get submission statistics (manually calculate for empty feedback)
+    const submittedMeals = ['morning', 'afternoon', 'evening', 'night'].filter(
+      meal => feedback.meals[meal].rating !== null && feedback.meals[meal].rating !== undefined
+    );
+    
+    const stats = {
       totalMeals: 4,
-      submittedMeals: 0,
-      pendingMeals: 4,
-      submittedMealTypes: []
+      submittedMeals: submittedMeals.length,
+      pendingMeals: 4 - submittedMeals.length,
+      submittedMealTypes: submittedMeals
     };
 
     // Get total submission count for today (for all users)
