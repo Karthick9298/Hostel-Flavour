@@ -3,6 +3,7 @@ import axios from 'axios';
 import Feedback from '../models/Feedback.js';
 import User from '../models/User.js';
 import { authenticateFirebaseToken, requireAdmin } from '../middleware/firebaseAuth.js';
+import analyticsService from '../services/analyticsService.js';
 
 const router = express.Router();
 
@@ -344,6 +345,394 @@ router.get('/comments', [authenticateFirebaseToken, requireAdmin], async (req, r
     res.status(500).json({
       status: 'error',
       message: 'Failed to get comments data',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * @route   GET /api/analytics/daily/:date
+ * @desc    Get comprehensive daily analysis
+ * @access  Admin only
+ */
+router.get('/daily/:date', authenticateFirebaseToken, requireAdmin, async (req, res) => {
+  try {
+    const { date } = req.params;
+    
+    // Validate date format
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid date format. Use YYYY-MM-DD'
+      });
+    }
+    
+    const analysis = await analyticsService.getDailyAnalysis(date);
+    
+    if (analysis.error) {
+      return res.status(500).json({
+        status: 'error',
+        message: analysis.message
+      });
+    }
+
+    // Handle different response types
+    if (analysis.status === 'no_data') {
+      return res.json({
+        status: 'no_data',
+        type: analysis.type,
+        message: analysis.message,
+        date: analysis.date,
+        data: analysis.data,
+        timestamp: analysis.timestamp
+      });
+    }
+    
+    // Success response
+    res.json({
+      status: 'success',
+      data: analysis.data,
+      date: analysis.date,
+      timestamp: analysis.timestamp
+    });
+    
+  } catch (error) {
+    console.error('Daily analytics error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch daily analytics',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * @route   GET /api/analytics/weekly/:date
+ * @desc    Get comprehensive weekly analysis
+ * @access  Admin only
+ */
+router.get('/weekly/:date', authenticateFirebaseToken, requireAdmin, async (req, res) => {
+  try {
+    const { date } = req.params;
+    
+    // Validate date format
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid date format. Use YYYY-MM-DD'
+      });
+    }
+    
+    const analysis = await analyticsService.getWeeklyAnalysis(date);
+    
+    if (analysis.error) {
+      return res.status(500).json({
+        status: 'error',
+        message: analysis.message
+      });
+    }
+    
+    res.json({
+      status: 'success',
+      data: analysis.data,
+      weekStart: analysis.weekStart,
+      weekEnd: analysis.weekEnd,
+      timestamp: analysis.timestamp
+    });
+    
+  } catch (error) {
+    console.error('Weekly analytics error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch weekly analytics',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * @route   GET /api/analytics/historical/comparison
+ * @desc    Get historical comparison analysis
+ * @access  Admin only
+ */
+router.get('/historical/comparison', authenticateFirebaseToken, requireAdmin, async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Both startDate and endDate are required'
+      });
+    }
+    
+    // Validate date formats
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid date format. Use YYYY-MM-DD'
+      });
+    }
+    
+    const analysis = await analyticsService.getHistoricalAnalysis(startDate, endDate, 'comparison');
+    
+    if (analysis.error) {
+      return res.status(500).json({
+        status: 'error',
+        message: analysis.message
+      });
+    }
+    
+    res.json({
+      status: 'success',
+      data: analysis.data,
+      startDate: analysis.startDate,
+      endDate: analysis.endDate,
+      analysisType: analysis.analysisType,
+      timestamp: analysis.timestamp
+    });
+    
+  } catch (error) {
+    console.error('Historical comparison error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch historical comparison',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * @route   GET /api/analytics/historical/trends
+ * @desc    Get historical trend analysis
+ * @access  Admin only
+ */
+router.get('/historical/trends', authenticateFirebaseToken, requireAdmin, async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Both startDate and endDate are required'
+      });
+    }
+    
+    const analysis = await analyticsService.getHistoricalAnalysis(startDate, endDate, 'trend');
+    
+    if (analysis.error) {
+      return res.status(500).json({
+        status: 'error',
+        message: analysis.message
+      });
+    }
+    
+    res.json({
+      status: 'success',
+      data: analysis.data,
+      startDate: analysis.startDate,
+      endDate: analysis.endDate,
+      analysisType: analysis.analysisType,
+      timestamp: analysis.timestamp
+    });
+    
+  } catch (error) {
+    console.error('Trend analysis error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch trend analysis',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * @route   GET /api/analytics/historical/patterns
+ * @desc    Get historical pattern analysis
+ * @access  Admin only
+ */
+router.get('/historical/patterns', authenticateFirebaseToken, requireAdmin, async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Both startDate and endDate are required'
+      });
+    }
+    
+    const analysis = await analyticsService.getHistoricalAnalysis(startDate, endDate, 'pattern');
+    
+    if (analysis.error) {
+      return res.status(500).json({
+        status: 'error',
+        message: analysis.message
+      });
+    }
+    
+    res.json({
+      status: 'success',
+      data: analysis.data,
+      startDate: analysis.startDate,
+      endDate: analysis.endDate,
+      analysisType: analysis.analysisType,
+      timestamp: analysis.timestamp
+    });
+    
+  } catch (error) {
+    console.error('Pattern analysis error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch pattern analysis',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * @route   GET /api/analytics/dashboard/quick-stats
+ * @desc    Get quick stats for dashboard overview
+ * @access  Admin only
+ */
+router.get('/dashboard/quick-stats', authenticateFirebaseToken, requireAdmin, async (req, res) => {
+  try {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const dateStr = yesterday.toISOString().split('T')[0];
+    
+    const quickStats = await analyticsService.getQuickStats(dateStr);
+    
+    if (quickStats.error) {
+      return res.status(500).json({
+        status: 'error',
+        message: quickStats.message
+      });
+    }
+    
+    res.json({
+      status: 'success',
+      data: quickStats,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Quick stats error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch quick stats',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * @route   GET /api/analytics/alerts
+ * @desc    Get current alerts and notifications
+ * @access  Admin only
+ */
+router.get('/alerts', authenticateFirebaseToken, requireAdmin, async (req, res) => {
+  try {
+    const alerts = await analyticsService.getCurrentAlerts();
+    
+    if (alerts.error) {
+      return res.status(500).json({
+        status: 'error',
+        message: alerts.message,
+        data: []
+      });
+    }
+    
+    res.json({
+      status: 'success',
+      data: alerts.data,
+      total: alerts.total,
+      critical: alerts.critical,
+      warning: alerts.warning,
+      info: alerts.info,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Alerts fetch error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch alerts',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * @route   POST /api/analytics/reports/generate
+ * @desc    Generate and download analytics report
+ * @access  Admin only
+ */
+router.post('/reports/generate', authenticateFirebaseToken, requireAdmin, async (req, res) => {
+  try {
+    const { reportType, startDate, endDate, format = 'json' } = req.body;
+    
+    if (!reportType || !startDate || !endDate) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'reportType, startDate, and endDate are required'
+      });
+    }
+    
+    const report = await analyticsService.generateReport({
+      reportType,
+      startDate,
+      endDate,
+      format
+    });
+    
+    if (report.error) {
+      return res.status(500).json({
+        status: 'error',
+        message: report.message
+      });
+    }
+    
+    // Set appropriate headers for file download
+    const contentType = format === 'csv' ? 'text/csv' : 'application/json';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${report.filename}"`);
+    
+    res.send(report.data);
+    
+  } catch (error) {
+    console.error('Report generation error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to generate report',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * @route   GET /api/analytics/system/health
+ * @desc    Check analytics system health and dependencies
+ * @access  Admin only
+ */
+router.get('/system/health', authenticateFirebaseToken, requireAdmin, async (req, res) => {
+  try {
+    const healthCheck = await analyticsService.checkPythonDependencies();
+    
+    res.json({
+      status: 'success',
+      data: {
+        pythonAvailable: !healthCheck.error,
+        dependencies: healthCheck,
+        timestamp: new Date().toISOString()
+      }
+    });
+    
+  } catch (error) {
+    console.error('Health check error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Health check failed',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

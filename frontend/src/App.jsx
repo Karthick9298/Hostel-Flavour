@@ -11,7 +11,7 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import StudentDashboard from './pages/student/Dashboard';
-import AdminDashboard from './pages/admin/Dashboard';
+import AdminDashboard from './pages/admin/DashboardDaily';
 import Profile from './pages/Profile';
 
 // Protected Route Component

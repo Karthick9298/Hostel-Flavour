@@ -135,14 +135,14 @@ feedbackSchema.methods.canSubmitMeal = function(mealType) {
     
     case 'evening':
       // Evening meal can be submitted from 5 PM till midnight (11:59 PM)
-      if (currentHour >= 17) {
+      if (currentHour >= 13) {
         return { canSubmit: true };
       }
       return { canSubmit: false, reason: `Evening meal feedback can only be submitted from 5 PM onwards. Current time: ${currentHour}:00` };
     
     case 'night':
       // Night meal can be submitted from 8 PM till midnight (11:59 PM)
-      if (currentHour >= 20) {
+      if (currentHour >= 13) {
         return { canSubmit: true };
       }
       return { canSubmit: false, reason: `Night meal feedback can only be submitted from 8 PM onwards. Current time: ${currentHour}:00` };
