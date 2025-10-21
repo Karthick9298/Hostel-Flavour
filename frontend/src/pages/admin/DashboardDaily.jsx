@@ -312,6 +312,14 @@ const DailyAnalysisDashboard = () => {
                             <h5 className="font-bold text-lg text-gray-900 mb-4 flex items-center space-x-2">
                               {getMealIcon(meal.toLowerCase())}
                               <span>{meal}</span>
+                              <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                                data.sentiment_color === 'green' ? 'bg-green-100 text-green-800' :
+                                data.sentiment_color === 'red' ? 'bg-red-100 text-red-800' :
+                                data.sentiment_color === 'yellow' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {data.dominant_sentiment}
+                              </span>
                             </h5>
                             
                             <div className="space-y-4">
@@ -321,15 +329,66 @@ const DailyAnalysisDashboard = () => {
                               </div>
                               
                               <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">Total Comments:</span>
-                                <span className="font-medium">{data.total_comments}</span>
+                                <span className="text-sm text-gray-600">Total Responses:</span>
+                                <span className="font-medium">{data.total_responses}</span>
                               </div>
-                              
-                              {data.positive_feedback && data.positive_feedback.length > 0 && (
+
+                              {/* Sentiment Distribution */}
+                              {data.sentiment_distribution && (
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                  <h6 className="font-medium text-gray-900 mb-3">Sentiment Breakdown:</h6>
+                                  <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-sm text-green-600 flex items-center">
+                                        <FaThumbsUp className="mr-1" /> Positive
+                                      </span>
+                                      <span className="font-medium text-green-700">
+                                        {data.sentiment_distribution.positive.count} ({data.sentiment_distribution.positive.percentage}%)
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-sm text-red-600 flex items-center">
+                                        <FaThumbsDown className="mr-1" /> Negative
+                                      </span>
+                                      <span className="font-medium text-red-700">
+                                        {data.sentiment_distribution.negative.count} ({data.sentiment_distribution.negative.percentage}%)
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-sm text-gray-600 flex items-center">
+                                        <FaExclamationCircle className="mr-1" /> Neutral
+                                      </span>
+                                      <span className="font-medium text-gray-700">
+                                        {data.sentiment_distribution.neutral.count} ({data.sentiment_distribution.neutral.percentage}%)
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Key Insights */}
+                              {data.key_insights && data.key_insights.length > 0 && (
                                 <div>
-                                  <p className="text-sm font-medium text-green-700 mb-2">🎉 Positive Feedback:</p>
+                                  <p className="text-sm font-medium text-blue-700 mb-2 flex items-center">
+                                    <FaLightbulb className="mr-1" /> Key Insights:
+                                  </p>
                                   <ul className="text-sm text-gray-700 space-y-1">
-                                    {data.positive_feedback.map((comment, i) => (
+                                    {data.key_insights.map((insight, i) => (
+                                      <li key={i} className="text-xs bg-blue-50 p-2 rounded border-l-2 border-blue-200">
+                                        {insight}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              
+                              {data.positive_highlights && data.positive_highlights.length > 0 && (
+                                <div>
+                                  <p className="text-sm font-medium text-green-700 mb-2 flex items-center">
+                                    <FaCheckCircle className="mr-1" /> Positive Highlights:
+                                  </p>
+                                  <ul className="text-sm text-gray-700 space-y-1">
+                                    {data.positive_highlights.map((comment, i) => (
                                       <li key={i} className="text-xs bg-green-50 p-2 rounded">"{comment}"</li>
                                     ))}
                                   </ul>
@@ -338,7 +397,9 @@ const DailyAnalysisDashboard = () => {
                               
                               {data.improvement_areas && data.improvement_areas.length > 0 && (
                                 <div>
-                                  <p className="text-sm font-medium text-red-700 mb-2">⚠️ Improvement Areas:</p>
+                                  <p className="text-sm font-medium text-red-700 mb-2 flex items-center">
+                                    <FaExclamationTriangle className="mr-1" /> Improvement Areas:
+                                  </p>
                                   <ul className="text-sm text-gray-700 space-y-1">
                                     {data.improvement_areas.map((comment, i) => (
                                       <li key={i} className="text-xs bg-red-50 p-2 rounded">"{comment}"</li>
@@ -352,80 +413,150 @@ const DailyAnalysisDashboard = () => {
                       </div>
                     </div>
 
-                    {/* 5. Overall Feedback & Common Issues (AI Summary) */}
+                    {/* 5. Enhanced AI-Powered Overall Summary */}
                     {dailyData.overallSummary && (
                       <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-2xl p-8 border border-indigo-200">
                         <h4 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
                           <FaRobot className="text-purple-600 text-2xl" />
-                          <span>AI-Powered Overall Summary</span>
+                          <span>AI-Powered Analysis & Recommendations</span>
                         </h4>
+
+                        {/* Performance Summary Banner */}
+                        {dailyData.overallSummary.performance_summary && (
+                          <div className="bg-white rounded-xl p-4 mb-6 border-l-4 border-blue-500">
+                            <h5 className="font-bold text-gray-900 mb-2 flex items-center">
+                              <FaChartLine className="text-blue-500 mr-2" />
+                              Performance Summary
+                            </h5>
+                            <p className="text-gray-700 text-sm">{dailyData.overallSummary.performance_summary}</p>
+                          </div>
+                        )}
                         
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          {/* Overall Feedback */}
+                          {/* Key Insights */}
                           <div className="bg-white rounded-xl p-6 shadow-sm">
-                            <h5 className="font-bold text-lg text-gray-900 mb-3 flex items-center space-x-2">
-                              <FaComments className="text-blue-500" />
-                              <span>Overall Feedback</span>
+                            <h5 className="font-bold text-lg text-gray-900 mb-4 flex items-center space-x-2">
+                              <FaLightbulb className="text-yellow-500" />
+                              <span>Key Insights (AI Analysis)</span>
                             </h5>
-                            <p className="text-gray-700">{dailyData.overallSummary.overall_feedback}</p>
-                          </div>
-                          
-                          {/* Common Issues */}
-                          <div className="bg-white rounded-xl p-6 shadow-sm">
-                            <h5 className="font-bold text-lg text-gray-900 mb-3 flex items-center space-x-2">
-                              <FaExclamationTriangle className="text-red-500" />
-                              <span>Common Issues</span>
-                            </h5>
-                            {dailyData.overallSummary.common_issues && dailyData.overallSummary.common_issues.length > 0 ? (
-                              <ul className="space-y-2">
-                                {dailyData.overallSummary.common_issues.map((issue, index) => (
-                                  <li key={index} className="text-sm text-gray-700 flex items-start space-x-2">
-                                    <span className="text-red-500 mt-1">•</span>
-                                    <span>{issue}</span>
-                                  </li>
+                            {dailyData.overallSummary.key_insights && dailyData.overallSummary.key_insights.length > 0 ? (
+                              <div className="space-y-3">
+                                {dailyData.overallSummary.key_insights.map((insight, index) => (
+                                  <div key={index} className={`p-3 rounded-lg border-l-4 ${
+                                    insight.includes('🔴') ? 'bg-red-50 border-red-400' :
+                                    insight.includes('🟡') ? 'bg-yellow-50 border-yellow-400' :
+                                    insight.includes('🟢') ? 'bg-green-50 border-green-400' :
+                                    insight.includes('⚠️') ? 'bg-orange-50 border-orange-400' :
+                                    'bg-blue-50 border-blue-400'
+                                  }`}>
+                                    <p className="text-sm font-medium text-gray-800">{insight}</p>
+                                  </div>
                                 ))}
-                              </ul>
+                              </div>
                             ) : (
-                              <p className="text-gray-500 text-sm">No major issues identified today!</p>
+                              <p className="text-gray-500 text-sm">No specific insights available for analysis.</p>
                             )}
                           </div>
                           
-                          {/* Positive Highlights */}
-                          {dailyData.overallSummary.positive_highlights && dailyData.overallSummary.positive_highlights.length > 0 && (
-                            <div className="bg-white rounded-xl p-6 shadow-sm">
-                              <h5 className="font-bold text-lg text-gray-900 mb-3 flex items-center space-x-2">
-                                <FaThumbsUp className="text-green-500" />
-                                <span>Positive Highlights</span>
-                              </h5>
-                              <ul className="space-y-2">
-                                {dailyData.overallSummary.positive_highlights.map((highlight, index) => (
-                                  <li key={index} className="text-sm text-gray-700 flex items-start space-x-2">
-                                    <span className="text-green-500 mt-1">•</span>
-                                    <span>{highlight}</span>
-                                  </li>
+                          {/* Critical Actions */}
+                          <div className="bg-white rounded-xl p-6 shadow-sm">
+                            <h5 className="font-bold text-lg text-gray-900 mb-4 flex items-center space-x-2">
+                              <FaExclamationTriangle className="text-red-500" />
+                              <span>Critical Actions Required</span>
+                            </h5>
+                            {dailyData.overallSummary.critical_actions && dailyData.overallSummary.critical_actions.length > 0 ? (
+                              <div className="space-y-2">
+                                {dailyData.overallSummary.critical_actions.map((action, index) => (
+                                  <div key={index} className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                                    <div className="flex-shrink-0">
+                                      <span className="flex items-center justify-center w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full">
+                                        {index + 1}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-gray-800 font-medium">{action}</p>
+                                  </div>
                                 ))}
-                              </ul>
-                            </div>
-                          )}
-                          
-                          {/* Recommendations */}
-                          {dailyData.overallSummary.recommendations && dailyData.overallSummary.recommendations.length > 0 && (
-                            <div className="bg-white rounded-xl p-6 shadow-sm">
-                              <h5 className="font-bold text-lg text-gray-900 mb-3 flex items-center space-x-2">
-                                <FaLightbulb className="text-yellow-500" />
-                                <span>Recommendations</span>
-                              </h5>
-                              <ul className="space-y-2">
-                                {dailyData.overallSummary.recommendations.map((rec, index) => (
-                                  <li key={index} className="text-sm text-gray-700 flex items-start space-x-2">
-                                    <span className="text-yellow-500 mt-1">•</span>
-                                    <span>{rec}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
+                              </div>
+                            ) : (
+                              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                                <p className="text-green-700 text-sm flex items-center">
+                                  <FaCheckCircle className="mr-2" />
+                                  No critical actions required - keep maintaining current standards!
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </div>
+
+                        {/* Legacy Support - Show old format if new format not available */}
+                        {(!dailyData.overallSummary.key_insights && dailyData.overallSummary.overall_feedback) && (
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                            {/* Overall Feedback (Legacy) */}
+                            <div className="bg-white rounded-xl p-6 shadow-sm">
+                              <h5 className="font-bold text-lg text-gray-900 mb-3 flex items-center space-x-2">
+                                <FaComments className="text-blue-500" />
+                                <span>Overall Feedback</span>
+                              </h5>
+                              <p className="text-gray-700">{dailyData.overallSummary.overall_feedback}</p>
+                            </div>
+                            
+                            {/* Common Issues (Legacy) */}
+                            <div className="bg-white rounded-xl p-6 shadow-sm">
+                              <h5 className="font-bold text-lg text-gray-900 mb-3 flex items-center space-x-2">
+                                <FaExclamationTriangle className="text-red-500" />
+                                <span>Common Issues</span>
+                              </h5>
+                              {dailyData.overallSummary.common_issues && dailyData.overallSummary.common_issues.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {dailyData.overallSummary.common_issues.map((issue, index) => (
+                                    <li key={index} className="text-sm text-gray-700 flex items-start space-x-2">
+                                      <span className="text-red-500 mt-1">•</span>
+                                      <span>{issue}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-gray-500 text-sm">No major issues identified today!</p>
+                              )}
+                            </div>
+                            
+                            {/* Positive Highlights (Legacy) */}
+                            {dailyData.overallSummary.positive_highlights && dailyData.overallSummary.positive_highlights.length > 0 && (
+                              <div className="bg-white rounded-xl p-6 shadow-sm">
+                                <h5 className="font-bold text-lg text-gray-900 mb-3 flex items-center space-x-2">
+                                  <FaThumbsUp className="text-green-500" />
+                                  <span>Positive Highlights</span>
+                                </h5>
+                                <ul className="space-y-2">
+                                  {dailyData.overallSummary.positive_highlights.map((highlight, index) => (
+                                    <li key={index} className="text-sm text-gray-700 flex items-start space-x-2">
+                                      <span className="text-green-500 mt-1">•</span>
+                                      <span>{highlight}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {/* Recommendations (Legacy) */}
+                            {dailyData.overallSummary.recommendations && dailyData.overallSummary.recommendations.length > 0 && (
+                              <div className="bg-white rounded-xl p-6 shadow-sm">
+                                <h5 className="font-bold text-lg text-gray-900 mb-3 flex items-center space-x-2">
+                                  <FaLightbulb className="text-yellow-500" />
+                                  <span>Recommendations</span>
+                                </h5>
+                                <ul className="space-y-2">
+                                  {dailyData.overallSummary.recommendations.map((rec, index) => (
+                                    <li key={index} className="text-sm text-gray-700 flex items-start space-x-2">
+                                      <span className="text-yellow-500 mt-1">•</span>
+                                      <span>{rec}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

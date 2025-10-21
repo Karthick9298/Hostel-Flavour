@@ -24,7 +24,7 @@ const connectDB = async () => {
   }
 };
 
-// Sample comments for different ratings
+// Sample comments for different ratings with more realistic and diverse feedback
 const comments = {
   5: [
     "Excellent taste! Really enjoyed it",
@@ -34,7 +34,11 @@ const comments = {
     "Delicious and well-prepared",
     "Outstanding meal, keep it up!",
     "Fresh and tasty, loved it",
-    "Perfect portion size and taste"
+    "Perfect portion size and taste",
+    "Superb quality, chef did great job",
+    "Absolutely delicious, want more!",
+    "Top-notch meal, very satisfied",
+    "Exceptional taste and presentation"
   ],
   4: [
     "Good taste, quite satisfied",
@@ -44,7 +48,11 @@ const comments = {
     "Tasty and fresh",
     "Good preparation, liked it",
     "Decent meal, above average",
-    "Well-balanced and nutritious"
+    "Well-balanced and nutritious",
+    "Good effort, mostly satisfied",
+    "Nice variety, enjoyed the meal",
+    "Good quality ingredients used",
+    "Satisfying and filling meal"
   ],
   3: [
     "Average taste, okay meal",
@@ -54,17 +62,29 @@ const comments = {
     "Standard meal, no complaints",
     "Average preparation",
     "Okay taste, room for improvement",
-    "Neither good nor bad"
+    "Neither good nor bad",
+    "Decent but could be improved",
+    "Standard quality, nothing exciting",
+    "Mediocre taste, acceptable",
+    "Basic meal, serves the purpose"
   ],
   2: [
     "Below average quality",
     "Needs improvement in taste",
     "Not very appetizing",
-    "Poor seasoning",
+    "Poor seasoning, too bland",
     "Could taste much better",
     "Disappointing meal today",
     "Quality needs work",
-    "Not satisfied with the taste"
+    "Not satisfied with the taste",
+    "Food was cold when served",
+    "Too salty, hard to eat",
+    "Overcooked and dry",
+    "Lacking flavor and freshness",
+    "Small portion, not filling",
+    "Too spicy, couldn't finish",
+    "Vegetables were stale",
+    "Oil was too much"
   ],
   1: [
     "Very poor quality",
@@ -74,20 +94,90 @@ const comments = {
     "Worst meal of the week",
     "Needs major improvement",
     "Inedible quality",
-    "Very disappointed"
+    "Very disappointed",
+    "Food was spoiled, tasted bad",
+    "Burnt food, completely ruined",
+    "Hair found in food, disgusting",
+    "Undercooked rice, couldn't eat",
+    "Rotten vegetables, smelled bad",
+    "Too much salt, impossible to eat",
+    "Food poisoning risk, unsafe",
+    "Dirty plates, unhygienic service",
+    "Stale bread, very hard",
+    "Insects found in food",
+    "Extremely bitter taste",
+    "Food was ice cold and hard"
   ]
 };
 
-// Generate realistic rating with some bias towards positive ratings
+// Generate realistic rating with balanced distribution for better analysis
 const generateRating = () => {
   const random = Math.random();
   
-  // Weighted distribution (slightly positive bias)
-  if (random < 0.05) return 1;      // 5% - Very poor
-  else if (random < 0.15) return 2; // 10% - Poor  
-  else if (random < 0.35) return 3; // 20% - Average
-  else if (random < 0.70) return 4; // 35% - Good
-  else return 5;                    // 30% - Excellent
+  // More balanced distribution for realistic feedback analysis
+  if (random < 0.12) return 1;      // 12% - Very poor (issues to identify)
+  else if (random < 0.25) return 2; // 13% - Poor (improvement areas)
+  else if (random < 0.50) return 3; // 25% - Average (neutral feedback)
+  else if (random < 0.78) return 4; // 28% - Good (positive feedback)
+  else return 5;                    // 22% - Excellent (highlights)
+};
+
+// Generate meal-specific rating variations (some meals perform better/worse)
+const generateMealSpecificRating = (mealType, baseRating) => {
+  // Add meal-specific variations for more realistic analysis
+  const mealModifiers = {
+    morning: 0.1,    // Breakfast slightly better (fresh morning preparation)
+    afternoon: -0.1, // Lunch slightly worse (rush hour issues)
+    evening: 0.0,    // Dinner average
+    night: -0.2      // Night snacks often have issues (limited options, cold food)
+  };
+  
+  const modifier = mealModifiers[mealType] || 0;
+  const random = Math.random();
+  
+  // Apply meal-specific bias
+  if (modifier < 0 && random < Math.abs(modifier)) {
+    // Increase chance of lower rating for problematic meals
+    return Math.max(1, baseRating - 1);
+  } else if (modifier > 0 && random < modifier) {
+    // Increase chance of higher rating for good meals
+    return Math.min(5, baseRating + 1);
+  }
+  
+  return baseRating;
+};
+
+// Generate date-specific quality variations (some days have issues)
+const getDateQualityModifier = (dateIndex) => {
+  // Create realistic scenarios for different days
+  const dateScenarios = {
+    0: { modifier: 0.0, description: "Normal day" },    // Oct 12 - Sunday
+    1: { modifier: -0.15, description: "Monday blues, some kitchen issues" },  // Oct 13 - Monday  
+    2: { modifier: 0.1, description: "Good Tuesday, fresh ingredients" },      // Oct 14 - Tuesday
+    3: { modifier: -0.1, description: "Mid-week average" },                    // Oct 15 - Wednesday
+    4: { modifier: -0.2, description: "Thursday problems, equipment breakdown" }, // Oct 16 - Thursday
+    5: { modifier: 0.15, description: "Great Friday, special menu" },          // Oct 17 - Friday
+    6: { modifier: -0.05, description: "Weekend, reduced staff" }              // Oct 18 - Saturday
+  };
+  
+  return dateScenarios[dateIndex] || { modifier: 0, description: "Normal day" };
+};
+
+// Apply date and meal specific modifications to rating
+const getFinalRating = (baseRating, mealType, dateIndex) => {
+  const mealRating = generateMealSpecificRating(mealType, baseRating);
+  const dateModifier = getDateQualityModifier(dateIndex);
+  
+  // Apply date modifier with some randomness
+  if (Math.random() < 0.3) { // 30% chance to apply date modifier
+    if (dateModifier.modifier < 0) {
+      return Math.max(1, mealRating - 1);
+    } else if (dateModifier.modifier > 0) {
+      return Math.min(5, mealRating + 1);
+    }
+  }
+  
+  return mealRating;
 };
 
 // Generate realistic meal participation with more randomness
@@ -225,8 +315,10 @@ const generateTestFeedback = async () => {
     for (let dateIndex = 0; dateIndex < dates.length; dateIndex++) {
       const currentDate = dates[dateIndex];
       const isToday = dateIndex === dates.length - 1;
+      const dayScenario = getDateQualityModifier(dateIndex);
       
       console.log(`📊 Day ${dateIndex + 1}/7: ${currentDate.toDateString()} ${isToday ? '(TODAY)' : ''}`);
+      console.log(`   🎭 Scenario: ${dayScenario.description}`);
       
       let dayFeedbacks = 0;
       let dayMealRatings = 0;
@@ -249,7 +341,8 @@ const generateTestFeedback = async () => {
           // Generate feedback for each meal type with individual randomness
           mealTypes.forEach(mealType => {
             if (shouldSubmitFeedback(mealType, user.rollNumber)) {
-              const rating = generateRating();
+              const baseRating = generateRating();
+              const rating = getFinalRating(baseRating, mealType, dateIndex);
               const comment = getRandomComment(rating);
               const submittedAt = getSubmissionTime(currentDate, mealType);
               

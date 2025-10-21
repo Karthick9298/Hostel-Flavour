@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Weekly Analysis Service for Hostel Food Analysis
-Analyzes feedback data for a specific week
+Enhanced Weekly Analysis Service for Hostel Food Analysis
+Analyzes feedback data for a specific week with comprehensive metrics
 """
 
 import sys
@@ -10,9 +10,162 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.database import DatabaseConnection, get_date_range, safe_json_output, handle_error
 from datetime import datetime, timedelta
-import pandas as pd
-import numpy as np
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
+import statistics
+
+def generate_weekly_overall_summary(weekly_data, daily_summaries):
+    """Generate AI-powered weekly summary with strategic insights"""
+    
+    if not weekly_data["all_ratings"]:
+        return {
+            "key_weekly_insights": [],
+            "critical_weekly_actions": [],
+            "week_performance_status": "NO DATA",
+            "weekly_performance_summary": "No feedback available for analysis"
+        }
+    
+    avg_rating = sum(weekly_data["all_ratings"]) / len(weekly_data["all_ratings"])
+    total_feedback = len(weekly_data["all_ratings"])
+    
+    # Calculate weekly trends
+    daily_ratings = [summary["avg_rating"] for summary in daily_summaries.values() if summary["avg_rating"] > 0]
+    trend_direction = "stable"
+    if len(daily_ratings) >= 2:
+        if daily_ratings[-1] > daily_ratings[0] + 0.2:
+            trend_direction = "improving"
+        elif daily_ratings[-1] < daily_ratings[0] - 0.2:
+            trend_direction = "declining"
+    
+    # Rating distribution analysis
+    rating_counts = Counter(weekly_data["all_ratings"])
+    poor_ratings = rating_counts[1] + rating_counts[2]
+    excellent_ratings = rating_counts[4] + rating_counts[5]
+    poor_percentage = (poor_ratings / total_feedback) * 100
+    excellent_percentage = (excellent_ratings / total_feedback) * 100
+    
+    # Find consistently problematic patterns
+    problematic_patterns = []
+    
+    # Check for Monday issues
+    monday_ratings = [summary["avg_rating"] for date, summary in daily_summaries.items() 
+                     if summary["day_name"] == "Monday" and summary["avg_rating"] > 0]
+    if monday_ratings and statistics.mean(monday_ratings) < avg_rating - 0.3:
+        problematic_patterns.append("Monday Blues Pattern")
+    
+    # Check for weekend quality drops
+    weekend_ratings = [summary["avg_rating"] for date, summary in daily_summaries.items() 
+                      if summary["day_name"] in ["Saturday", "Sunday"] and summary["avg_rating"] > 0]
+    weekday_ratings = [summary["avg_rating"] for date, summary in daily_summaries.items() 
+                      if summary["day_name"] not in ["Saturday", "Sunday"] and summary["avg_rating"] > 0]
+    
+    if weekend_ratings and weekday_ratings:
+        weekend_avg = statistics.mean(weekend_ratings)
+        weekday_avg = statistics.mean(weekday_ratings)
+        if weekend_avg < weekday_avg - 0.25:
+            problematic_patterns.append("Weekend Quality Drop")
+    
+    # Analyze meal consistency across the week
+    meal_names = {'morning': 'Breakfast', 'afternoon': 'Lunch', 'evening': 'Dinner', 'night': 'Night Snacks'}
+    worst_performing_meals = []
+    best_performing_meals = []
+    
+    for meal_type, meal_name in meal_names.items():
+        meal_ratings = weekly_data["meal_ratings"][meal_type]
+        if meal_ratings:
+            meal_avg = sum(meal_ratings) / len(meal_ratings)
+            poor_count = len([r for r in meal_ratings if r <= 2])
+            poor_rate = (poor_count / len(meal_ratings)) * 100
+            
+            if meal_avg < 3.0 or poor_rate > 30:
+                worst_performing_meals.append(f"{meal_name} (avg: {meal_avg:.1f})")
+            elif meal_avg >= 3.8 and poor_rate < 15:
+                best_performing_meals.append(f"{meal_name} (avg: {meal_avg:.1f})")
+    
+    # Generate key weekly insights
+    key_insights = []
+    
+    # Insight 1: Overall weekly performance
+    if avg_rating >= 4.0:
+        key_insights.append(f"🟢 EXCELLENT WEEK: {avg_rating:.1f}/5 average with {excellent_percentage:.0f}% positive feedback - outstanding performance!")
+    elif avg_rating >= 3.5:
+        key_insights.append(f"🟡 GOOD WEEK: {avg_rating:.1f}/5 average shows solid performance with improvement opportunities")
+    elif avg_rating >= 3.0:
+        key_insights.append(f"🟠 MIXED WEEK: {avg_rating:.1f}/5 average indicates inconsistent quality - needs attention")
+    else:
+        key_insights.append(f"🔴 CRITICAL WEEK: {avg_rating:.1f}/5 average with {poor_percentage:.0f}% poor ratings - immediate intervention required")
+    
+    # Insight 2: Weekly trend analysis
+    if trend_direction == "improving":
+        key_insights.append(f"📈 POSITIVE TREND: Quality improving through the week - great momentum!")
+    elif trend_direction == "declining":
+        key_insights.append(f"📉 CONCERNING TREND: Quality declining through the week - investigate causes")
+    else:
+        if len(daily_ratings) >= 3:
+            consistency = statistics.stdev(daily_ratings)
+            if consistency > 0.5:
+                key_insights.append(f"⚡ INCONSISTENT WEEK: High daily variation ({consistency:.1f} std dev) - focus on standardization")
+    
+    # Insight 3: Pattern-based insights
+    if problematic_patterns:
+        if "Monday Blues Pattern" in problematic_patterns:
+            key_insights.append("🔵 MONDAY PROBLEM: Consistently poor Monday performance - weekend prep issues detected")
+        if "Weekend Quality Drop" in problematic_patterns:
+            key_insights.append("📅 WEEKEND CHALLENGE: Quality drops on weekends - staffing/supply chain issues")
+    
+    # Insight 4: Meal-specific insights
+    if worst_performing_meals:
+        key_insights.append(f"🍽️ MEAL ALERTS: {', '.join(worst_performing_meals)} need immediate review")
+    elif best_performing_meals:
+        key_insights.append(f"⭐ MEAL SUCCESSES: {', '.join(best_performing_meals)} performing excellently")
+    
+    # Generate critical weekly actions
+    critical_actions = []
+    
+    if avg_rating < 3.0:
+        critical_actions.extend([
+            "Schedule emergency kitchen staff meeting for next Monday",
+            "Implement daily quality monitoring system for entire next week",
+            "Conduct immediate supplier quality audit"
+        ])
+    elif avg_rating < 3.5:
+        critical_actions.extend([
+            "Establish weekly menu review process with student representatives",
+            "Implement mid-week quality check protocols",
+            "Enhanced staff training on consistency standards"
+        ])
+    
+    if "Monday Blues Pattern" in problematic_patterns:
+        critical_actions.append("Implement Sunday evening prep checklist and Monday morning quality verification")
+    
+    if "Weekend Quality Drop" in problematic_patterns:
+        critical_actions.append("Review weekend staffing levels and establish weekend quality standards")
+    
+    if worst_performing_meals:
+        critical_actions.append(f"Priority focus on {worst_performing_meals[0].split('(')[0].strip()} preparation and service")
+    
+    if not critical_actions:
+        critical_actions.extend([
+            "Maintain current quality standards",
+            "Continue weekly performance monitoring",
+            "Explore menu variety enhancements"
+        ])
+    
+    # Weekly performance status
+    status = "EXCELLENT" if avg_rating >= 4.0 else "GOOD" if avg_rating >= 3.5 else "NEEDS IMPROVEMENT" if avg_rating >= 2.5 else "CRITICAL"
+    
+    performance_summary = f"📊 Week Status: {status} | Trend: {trend_direction.upper()} | Average: {avg_rating:.1f}/5 | Total Responses: {total_feedback} | {excellent_percentage:.0f}% positive, {poor_percentage:.0f}% poor"
+    
+    return {
+        "key_weekly_insights": key_insights[:4],
+        "critical_weekly_actions": critical_actions[:4],
+        "week_performance_status": status,
+        "weekly_performance_summary": performance_summary,
+        "weekly_trends": {
+            "direction": trend_direction,
+            "consistency_score": 1 - (statistics.stdev(daily_ratings) / 5) if len(daily_ratings) > 1 else 1,
+            "problematic_patterns": problematic_patterns
+        }
+    }
 
 def analyze_weekly_feedback(date_str):
     """
@@ -101,7 +254,7 @@ def analyze_weekly_feedback(date_str):
             for meal_type in meal_types:
                 meal_ratings = day_data["ratings"][meal_type]
                 if meal_ratings:
-                    avg_rating = np.mean(meal_ratings)
+                    avg_rating = statistics.mean(meal_ratings)
                     day_meal_performance[meal_type] = {
                         "averageRating": round(avg_rating, 2),
                         "participants": len(meal_ratings),
@@ -115,7 +268,7 @@ def analyze_weekly_feedback(date_str):
                         "ratingDistribution": {}
                     }
             
-            day_avg_rating = np.mean(day_ratings) if day_ratings else 0
+            day_avg_rating = statistics.mean(day_ratings) if day_ratings else 0
             day_participation = len(day_data["participants"])
             day_participation_rate = (day_participation / total_students * 100) if total_students > 0 else 0
             
@@ -133,8 +286,8 @@ def analyze_weekly_feedback(date_str):
             week_participation.append(day_participation)
         
         # Calculate weekly overview
-        week_avg_rating = np.mean(week_ratings) if week_ratings else 0
-        week_avg_participation = np.mean(week_participation) if week_participation else 0
+        week_avg_rating = statistics.mean(week_ratings) if week_ratings else 0
+        week_avg_participation = statistics.mean(week_participation) if week_participation else 0
         total_week_feedbacks = sum(len(day_data["participants"]) for day_data in daily_data.values())
         
         # Find best and worst days
@@ -175,11 +328,11 @@ def analyze_weekly_feedback(date_str):
                 meal_daily_ratings.append(meal_data["averageRating"])
                 meal_daily_participation.append(meal_data["participants"])
             
-            meal_avg_rating = np.mean([r for r in meal_daily_ratings if r > 0])
-            meal_avg_participation = np.mean(meal_daily_participation)
+            meal_avg_rating = statistics.mean([r for r in meal_daily_ratings if r > 0]) if [r for r in meal_daily_ratings if r > 0] else 0
+            meal_avg_participation = statistics.mean(meal_daily_participation)
             
             meal_trends[meal_type] = {
-                "weeklyAverage": round(meal_avg_rating, 2) if not np.isnan(meal_avg_rating) else 0,
+                "weeklyAverage": round(meal_avg_rating, 2) if meal_avg_rating > 0 else 0,
                 "averageParticipation": round(meal_avg_participation, 1),
                 "dailyRatings": meal_daily_ratings,
                 "dailyParticipation": meal_daily_participation,
@@ -248,7 +401,16 @@ def calculate_trend(ratings):
     
     # Simple linear trend calculation
     x = list(range(len(valid_ratings)))
-    slope = np.polyfit(x, valid_ratings, 1)[0] if len(valid_ratings) > 1 else 0
+    if len(valid_ratings) > 1:
+        # Calculate slope manually
+        n = len(valid_ratings)
+        sum_x = sum(x)
+        sum_y = sum(valid_ratings)
+        sum_xy = sum(x[i] * valid_ratings[i] for i in range(n))
+        sum_x2 = sum(xi * xi for xi in x)
+        slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x)
+    else:
+        slope = 0
     
     if slope > 0.1:
         return "improving"
@@ -263,7 +425,7 @@ def calculate_consistency(ratings):
     if len(valid_ratings) < 2:
         return 0
     
-    variance = np.var(valid_ratings)
+    variance = statistics.variance(valid_ratings)
     # Convert to consistency score (0-100, higher = more consistent)
     consistency = max(0, 100 - (variance * 25))
     return round(consistency, 1)
@@ -317,7 +479,7 @@ def analyze_weekly_participation(daily_breakdown):
     day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     participation_data.sort(key=lambda x: day_order.index(x["dayName"]) if x["dayName"] in day_order else 7)
     
-    avg_participation = np.mean([p["participationRate"] for p in participation_data])
+    avg_participation = statistics.mean([p["participationRate"] for p in participation_data])
     
     return {
         "dailyParticipation": participation_data,
@@ -438,7 +600,7 @@ def identify_weekly_patterns(daily_breakdown, meal_trends):
         day_performance[day_name].append(day_data["averageRating"])
     
     # Calculate average for each day of week
-    day_averages = {day: np.mean(ratings) for day, ratings in day_performance.items() if ratings}
+    day_averages = {day: statistics.mean(ratings) for day, ratings in day_performance.items() if ratings}
     best_day_of_week = max(day_averages.items(), key=lambda x: x[1]) if day_averages else None
     worst_day_of_week = min(day_averages.items(), key=lambda x: x[1]) if day_averages else None
     
@@ -459,9 +621,9 @@ def identify_weekly_patterns(daily_breakdown, meal_trends):
             weekday_ratings.append(day_data["averageRating"])
     
     patterns["weekendVsWeekday"] = {
-        "weekdayAverage": round(np.mean(weekday_ratings), 2) if weekday_ratings else 0,
-        "weekendAverage": round(np.mean(weekend_ratings), 2) if weekend_ratings else 0,
-        "difference": round(np.mean(weekend_ratings) - np.mean(weekday_ratings), 2) if weekend_ratings and weekday_ratings else 0
+        "weekdayAverage": round(statistics.mean(weekday_ratings), 2) if weekday_ratings else 0,
+        "weekendAverage": round(statistics.mean(weekend_ratings), 2) if weekend_ratings else 0,
+        "difference": round(statistics.mean(weekend_ratings) - statistics.mean(weekday_ratings), 2) if weekend_ratings and weekday_ratings else 0
     }
     
     return patterns
