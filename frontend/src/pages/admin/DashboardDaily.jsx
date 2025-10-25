@@ -462,7 +462,7 @@ const DailyAnalysisDashboard = () => {
                         
                         <div className="space-y-6">
                           {/* Priority Actions - Focus on what needs fixing */}
-                          {dailyData.overallSummary.critical_actions && dailyData.overallSummary.critical_actions.length > 0 && (
+                          {/* {dailyData.overallSummary.critical_actions && dailyData.overallSummary.critical_actions.length > 0 && (
                             <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-red-500">
                               <h5 className="font-bold text-lg text-gray-900 mb-4 flex items-center space-x-2">
                                 <FaExclamationTriangle className="text-red-500 text-xl" />
@@ -508,7 +508,7 @@ const DailyAnalysisDashboard = () => {
                                 })}
                               </div>
                             </div>
-                          )}
+                          )} */}
                           
                           {/* Key Focus Areas - Simplified to 2-3 points */}
                           {dailyData.overallSummary.key_insights && dailyData.overallSummary.key_insights.length > 0 && (
