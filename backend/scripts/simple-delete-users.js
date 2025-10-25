@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 import User from '../models/User.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
 
 // Get current directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -13,19 +12,36 @@ const __dirname = path.dirname(__filename);
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
-// Initialize Firebase Admin SDK
-const serviceAccountPath = path.join(__dirname, '../hostel-food-analysis-firebase-adminsdk-fbsvc-346848ceff.json');
+// Initialize Firebase Admin SDK using environment variables
+try {
+  // Create service account object from environment variables
+  const serviceAccount = {
+    type: "service_account",
+    project_id: process.env.FIREBASE_PROJECT_ID,
+    private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+    private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'), // Handle escaped newlines
+    client_email: process.env.FIREBASE_CLIENT_EMAIL,
+    client_id: process.env.FIREBASE_CLIENT_ID || "",
+    auth_uri: "https://accounts.google.com/o/oauth2/auth",
+    token_uri: "https://oauth2.googleapis.com/token",
+    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+    universe_domain: "googleapis.com"
+  };
 
-if (!fs.existsSync(serviceAccountPath)) {
-  console.error('❌ Firebase service account file not found');
+  // Validate required fields
+  if (!serviceAccount.project_id || !serviceAccount.private_key || !serviceAccount.client_email) {
+    throw new Error('Missing required Firebase Admin SDK environment variables. Please check FIREBASE_PROJECT_ID, FIREBASE_PRIVATE_KEY, and FIREBASE_CLIENT_EMAIL in .env file');
+  }
+
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    projectId: process.env.FIREBASE_PROJECT_ID
+  });
+  console.log('✅ Firebase Admin SDK initialized successfully');
+} catch (error) {
+  console.error('❌ Failed to initialize Firebase Admin SDK:', error.message);
   process.exit(1);
 }
-
-const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  projectId: process.env.FIREBASE_PROJECT_ID
-});
 
 // MongoDB connection
 const connectDB = async () => {
@@ -49,21 +65,23 @@ const deleteUsersByEmailRange = async () => {
     
     // Define email patterns to search for
     const emailPatterns = [
-      /^32310331001[0-9]@gvpce\.ac\.in$/,           // 10-19
-      /^32310331002[0-9]@gvpce\.ac\.in$/,           // 20-29  
-      /^32310331003[0-9]@gvpce\.ac\.in$/,           // 30-39
-      /^32310331004[0-9]@gvpce\.ac\.in$/,           // 40-49
-      /^32310331005[0-9]@gvpce\.ac\.in$/,           // 50-59
-      /^323103310060@gvpce\.ac\.in$/,               // 60
-      /^323103310061@gvpce\.ac\.in$/,               // 61
-      /^323103310062@gvpce\.ac\.in$/,               // 62
-      /^323103310063@gvpce\.ac\.in$/,               // 63
-      /^323103310064@gvpce\.ac\.in$/,               // 64
-      /^323103310065@gvpce\.ac\.in$/,               // 65
-      /^323103310066@gvpce\.ac\.in$/,               // 66
-      /^323103310067@gvpce\.ac\.in$/,               // 67
-      /^323103310068@gvpce\.ac\.in$/                // 68
-    ];
+  /^32310331000[1-9]@gvpce\.ac\.in$/,           // 001-009
+  /^32310331001[0-9]@gvpce\.ac\.in$/,           // 010-019
+  /^32310331002[0-9]@gvpce\.ac\.in$/,           // 020-029
+  /^32310331003[0-9]@gvpce\.ac\.in$/,           // 030-039
+  /^32310331004[0-9]@gvpce\.ac\.in$/,           // 040-049
+  /^32310331005[0-9]@gvpce\.ac\.in$/,           // 050-059
+  /^32310331006[0-9]@gvpce\.ac\.in$/,           // 060-069
+  /^32310331007[0-9]@gvpce\.ac\.in$/,           // 070-079
+  /^32310331008[0-9]@gvpce\.ac\.in$/,           // 080-089
+  /^32310331009[0-9]@gvpce\.ac\.in$/,           // 090-099
+  /^32310331010[0-9]@gvpce\.ac\.in$/,           // 100-109
+  /^32310331011[0-9]@gvpce\.ac\.in$/,           // 110-119
+  /^32310331012[0-9]@gvpce\.ac\.in$/,           // 120-129
+  /^32310331013[0-9]@gvpce\.ac\.in$/,           // 130-139
+  /^32310331014[0-9]@gvpce\.ac\.in$/,           // 140-149
+  /^3231033100150@gvpce\.ac\.in$/               // 150
+];
     
     // Also check for other possible email domains
     const alternativePatterns = [

@@ -169,11 +169,13 @@ def analyze_daily_feedback(date_str):
         # Get current date (today)
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         
-        # Check if requested date is today or future
-        if requested_date >= today:
+        print(f"Debug: Requested date: {requested_date}, Today: {today}", file=sys.stderr)
+        
+        # Check if requested date is future (allow today and past)
+        if requested_date > today:
             safe_json_output({
                 "status": "no_data",
-                "message": f"Feedback will be available from {(today + timedelta(days=1)).strftime('%Y-%m-%d')}",
+                "message": f"Feedback will be available after {requested_date.strftime('%Y-%m-%d')}",
                 "date": date_str,
                 "type": "future_date"
             })
@@ -189,6 +191,9 @@ def analyze_daily_feedback(date_str):
         # Get total registered students
         total_students = users_collection.count_documents({"isAdmin": False})
         
+        print(f"Debug: Querying collection: {feedback_collection.name}", file=sys.stderr)
+        print(f"Debug: Date range: {start_date} to {end_date}", file=sys.stderr)
+        
         # Fetch feedback data for the day
         feedback_cursor = feedback_collection.find({
             "date": {
@@ -199,6 +204,14 @@ def analyze_daily_feedback(date_str):
         
         feedback_data = list(feedback_cursor)
         print(f"Debug: Found {len(feedback_data)} feedback documents for {date_str}", file=sys.stderr)
+        
+        # Additional debug: Show sample dates if no data found
+        if len(feedback_data) == 0:
+            sample_dates = list(feedback_collection.find({}, {"date": 1}).sort("date", -1).limit(5))
+            print(f"Debug: No data found. Sample dates in database:", file=sys.stderr)
+            for doc in sample_dates:
+                print(f"  - {doc.get('date')}", file=sys.stderr)
+            print(f"Debug: Total feedback documents in collection: {feedback_collection.count_documents({})}", file=sys.stderr)
         
         if not feedback_data:
             safe_json_output({

@@ -15,7 +15,7 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 // MongoDB connection
 const connectDB = async () => {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/hostel-food-analysis';
+    const mongoUri = process.env.MONGODB_URI;
     await mongoose.connect(mongoUri);
     console.log('✅ MongoDB Connected successfully');
   } catch (error) {

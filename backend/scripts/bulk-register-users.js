@@ -31,7 +31,7 @@ const auth = getAuth(app);
 // MongoDB connection
 const connectDB = async () => {
   try {
-    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/hostel-food-analysis';
+    const mongoUri = process.env.MONGODB_URI;
     await mongoose.connect(mongoUri);
     console.log('✅ MongoDB Connected successfully');
   } catch (error) {

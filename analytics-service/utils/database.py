@@ -23,11 +23,27 @@ class DatabaseConnection:
         """Connect to MongoDB"""
         try:
             self.client = MongoClient(self.mongo_uri)
+            
             # Extract database name from URI or use default
-            if 'hostel-food-analysis' in self.mongo_uri:
-                self.db = self.client['hostel-food-analysis']
+            # MongoDB Atlas URIs format: mongodb+srv://user:pass@cluster.net/database?params
+            # Local URIs format: mongodb://localhost:27017/database
+            if '/' in self.mongo_uri:
+                # Try to extract database name from URI
+                uri_parts = self.mongo_uri.split('/')
+                if len(uri_parts) > 3:
+                    # Get the part after the last '/' and before any '?'
+                    db_part = uri_parts[-1].split('?')[0]
+                    if db_part:
+                        self.db = self.client[db_part]
+                    else:
+                        # No database in URI, use default
+                        self.db = self.client['hostel-food-analysis']
+                else:
+                    # Fallback to default database name
+                    self.db = self.client['hostel-food-analysis']
             else:
-                self.db = self.client.get_database()
+                # No database specified, use default
+                self.db = self.client['hostel-food-analysis']
             
             # Test connection
             self.db.command('ping')
