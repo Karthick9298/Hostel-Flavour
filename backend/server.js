@@ -27,7 +27,7 @@ app.use(helmet());
 
 // CORS configuration
 app.use(cors({
-  origin: [ 'http://localhost:5173', 'https://hostel-flavour.onrender.com/'],
+  origin: [ 'http://localhost:5173', 'https://hostel-flavour-gvp.onrender.com'],
   credentials: true
 }));
 
