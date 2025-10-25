@@ -49,7 +49,8 @@ const StudentDashboard = () => {
       bgColor: 'from-yellow-400 to-orange-400',
       borderColor: 'border-yellow-300',
       cardBg: 'bg-gradient-to-br from-yellow-50 to-orange-50',
-      time: '6:00 AM - 12:00 PM',
+      time: '7:00 AM - 9:00 AM',
+      availableFrom: '9:00 AM',
       emoji: '🌅',
       description: 'Start your day right'
     },
@@ -61,7 +62,8 @@ const StudentDashboard = () => {
       bgColor: 'from-orange-400 to-red-400',
       borderColor: 'border-orange-300',
       cardBg: 'bg-gradient-to-br from-orange-50 to-red-50',
-      time: '11:00 AM - 5:00 PM',
+      time: '11:00 AM - 1:00 PM',
+      availableFrom: '1:00 PM',
       emoji: '🌞',
       description: 'Power through your day'
     },
@@ -73,7 +75,8 @@ const StudentDashboard = () => {
       bgColor: 'from-blue-400 to-indigo-400',
       borderColor: 'border-blue-300',
       cardBg: 'bg-gradient-to-br from-blue-50 to-indigo-50',
-      time: '4:00 PM - 10:00 PM',
+      time: '4:00 PM - 5:00 PM',
+      availableFrom: '5:00 PM',
       emoji: '🌆',
       description: 'Evening refreshments'
     },
@@ -85,7 +88,8 @@ const StudentDashboard = () => {
       bgColor: 'from-purple-400 to-pink-400',
       borderColor: 'border-purple-300',
       cardBg: 'bg-gradient-to-br from-purple-50 to-pink-50',
-      time: '7:00 PM - 2:00 AM',
+      time: '7:00 PM - 9:00 PM',
+      availableFrom: '9:00 PM',
       emoji: '🌙',
       description: 'End your day satisfied'
     }
@@ -242,45 +246,45 @@ const StudentDashboard = () => {
 
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return { text: "Good Morning", icon: "🌅", color: "from-yellow-400 to-orange-500" };
-    if (hour < 17) return { text: "Good Afternoon", icon: "☀️", color: "from-orange-400 to-red-500" };
-    if (hour < 20) return { text: "Good Evening", icon: "🌇", color: "from-blue-400 to-purple-500" };
-    return { text: "Good Night", icon: "🌙", color: "from-purple-400 to-pink-500" };
+    if (hour < 12) return { text: "Good Morning", icon: "🌅", color: "from-indigo-500 via-blue-500 to-cyan-500" };
+    if (hour < 17) return { text: "Good Afternoon", icon: "☀️", color: "from-blue-500 via-indigo-500 to-purple-500" };
+    if (hour < 20) return { text: "Good Evening", icon: "🌇", color: "from-purple-500 via-pink-500 to-rose-500" };
+    return { text: "Good Night", icon: "🌙", color: "from-indigo-600 via-purple-600 to-pink-600" };
   };
 
   const greeting = getTimeBasedGreeting();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 particles-bg">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
         {/* Enhanced Welcome Header */}
-        <div className={`bg-gradient-to-r ${greeting.color} text-white rounded-2xl p-8 shadow-xl relative overflow-hidden animate-fadeIn`}>
+        <div className={`bg-gradient-to-r ${greeting.color} text-white rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden animate-fadeIn`}>
           <div className="absolute top-0 right-0 w-32 h-32 bg-white bg-opacity-10 rounded-full -mr-16 -mt-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white bg-opacity-5 rounded-full -ml-12 -mb-12"></div>
           
           <div className="relative">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-6">
-                <div className="p-4 bg-white bg-opacity-20 rounded-2xl shadow-lg backdrop-blur-sm">
-                  <FaUtensils className="text-4xl animate-pulse-custom" />
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center space-x-4 sm:space-x-6">
+                <div className="p-3 sm:p-4 bg-white bg-opacity-20 rounded-2xl shadow-lg backdrop-blur-sm flex-shrink-0">
+                  <FaUtensils className="text-2xl sm:text-4xl animate-pulse-custom" />
                 </div>
-                <div>
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h1 className="text-3xl font-bold">{greeting.text}, {user?.name}!</h1>
-                    <span className="text-2xl">{greeting.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-2 sm:space-x-3 mb-2">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold truncate">{greeting.text}, {user?.name}!</h1>
+                    <span className="text-xl sm:text-2xl flex-shrink-0">{greeting.icon}</span>
                   </div>
-                  <div className="flex items-center space-x-4 text-white text-opacity-90">
-                    <div className="flex items-center space-x-2">
-                      <FaBookmark className="text-sm" />
-                      <span className="text-sm font-medium">{user?.rollNumber}</span>
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-white text-opacity-90">
+                    <div className="flex items-center space-x-1.5 sm:space-x-2">
+                      <FaBookmark className="text-xs sm:text-sm flex-shrink-0" />
+                      <span className="text-xs sm:text-sm font-medium">{user?.rollNumber}</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <FaHeart className="text-sm" />
-                      <span className="text-sm font-medium">Room {user?.hostelRoom}</span>
+                    <div className="flex items-center space-x-1.5 sm:space-x-2">
+                      <FaHeart className="text-xs sm:text-sm flex-shrink-0" />
+                      <span className="text-xs sm:text-sm font-medium">Room {user?.hostelRoom}</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <FaClock className="text-sm" />
+                    <div className="hidden sm:flex items-center space-x-2">
+                      <FaClock className="text-sm flex-shrink-0" />
                       <span className="text-sm">{new Date().toLocaleDateString('en-US', { 
                         weekday: 'long', 
                         month: 'long', 
@@ -288,10 +292,17 @@ const StudentDashboard = () => {
                       })}</span>
                     </div>
                   </div>
+                  <div className="flex sm:hidden items-center space-x-2 mt-1 text-white text-opacity-75">
+                    <FaClock className="text-xs flex-shrink-0" />
+                    <span className="text-xs">{new Date().toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric' 
+                    })}</span>
+                  </div>
                 </div>
               </div>
               
-              <div className="hidden md:block text-right">
+              <div className="hidden md:flex flex-col items-center text-center flex-shrink-0">
                 <div className="text-white text-opacity-75 text-sm mb-1">Your Impact</div>
                 <div className="text-2xl font-bold">🌟</div>
                 <div className="text-xs text-white text-opacity-60">Making food better!</div>
@@ -303,7 +314,7 @@ const StudentDashboard = () => {
         {/* Enhanced Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="animate-scaleIn stagger-item">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover-lift">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl">
                   <FaUsers className="text-2xl text-blue-600" />
@@ -321,7 +332,7 @@ const StudentDashboard = () => {
           </div>
 
           <div className="animate-scaleIn stagger-item">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover-lift">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="p-3 bg-gradient-to-br from-green-100 to-green-200 rounded-xl">
                   <FaTrophy className="text-2xl text-green-600" />
@@ -339,16 +350,18 @@ const StudentDashboard = () => {
           </div>
 
           <div className="animate-scaleIn stagger-item">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover-lift">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="p-3 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl">
                   <FaFire className="text-2xl text-orange-600" />
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-orange-600">
-                    {feedback?.stats?.pendingMeals || 4}
+                    {feedback?.stats?.pendingMeals ?? 4}
                   </div>
-                  <div className="text-xs text-orange-500">Unlock rewards</div>
+                  <div className="text-xs text-orange-500">
+                    {feedback?.stats?.pendingMeals === 0 ? 'All done!' : 'Unlock rewards'}
+                  </div>
                 </div>
               </div>
               <h3 className="font-semibold text-gray-900 mb-1">Pending Reviews</h3>
@@ -357,7 +370,7 @@ const StudentDashboard = () => {
           </div>
 
           <div className="animate-scaleIn stagger-item">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover-lift">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="p-3 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl">
                   <FaGift className="text-2xl text-purple-600" />
@@ -387,15 +400,14 @@ const StudentDashboard = () => {
                       Today's Special Menu
                     </h2>
                     <p className="text-indigo-100">
-                      {todayMenu.dayName?.charAt(0).toUpperCase() + todayMenu.dayName?.slice(1)} • 
-                      Curated with love 💜
+                      {todayMenu.dayName?.charAt(0).toUpperCase() + todayMenu.dayName?.slice(1)}  
                     </p>
                   </div>
                 </div>
-                <div className="hidden md:block text-right">
+                {/* <div className="hidden md:block text-right">
                   <FaMagic className="text-3xl text-indigo-200 mb-2" />
                   <div className="text-sm text-indigo-100">Fresh & Delicious</div>
-                </div>
+                </div> */}
               </div>
             </div>
             
@@ -406,7 +418,7 @@ const StudentDashboard = () => {
                   const Icon = mealType.icon;
                   
                   return (
-                    <div key={mealType.key} className={`animate-scaleIn stagger-item p-6 rounded-2xl ${mealType.cardBg} border-2 ${mealType.borderColor} hover:shadow-lg transition-all duration-300 hover-scale`}>
+                    <div key={mealType.key} className={`animate-scaleIn stagger-item p-6 rounded-2xl ${mealType.cardBg} border-2 ${mealType.borderColor} shadow-lg`}>
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
                           <div className={`p-3 rounded-xl bg-gradient-to-r ${mealType.bgColor} text-white shadow-lg`}>
@@ -568,7 +580,7 @@ const StudentDashboard = () => {
         )}
 
         {/* Quick Tips for New Users */}
-        {(feedback?.stats?.submittedMeals || 0) === 0 && (
+        {/* {(feedback?.stats?.submittedMeals || 0) === 0 && (
           <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl p-6 border border-blue-200 animate-fadeIn">
             <div className="flex items-start space-x-4">
               <div className="p-3 bg-blue-100 rounded-xl flex-shrink-0">
@@ -600,7 +612,7 @@ const StudentDashboard = () => {
               </div>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Enhanced Instructions */}
         <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-2xl p-8 border border-indigo-100 animate-fadeIn">
@@ -720,7 +732,7 @@ const MealFeedbackCard = ({ meal, feedback, status, onSubmit, submitting }) => {
   };
 
   return (
-    <div className={`bg-white rounded-2xl shadow-lg border-2 ${meal.borderColor} hover:shadow-xl transition-all duration-300 hover-lift overflow-hidden`}>
+    <div className={`bg-white rounded-2xl shadow-xl border-2 ${meal.borderColor} overflow-hidden`}>
       <div className="p-6">
         <div className="flex items-center space-x-3 mb-6">
           <div className={`p-4 rounded-xl bg-gradient-to-r ${meal.bgColor} text-white shadow-lg`}>
@@ -729,7 +741,7 @@ const MealFeedbackCard = ({ meal, feedback, status, onSubmit, submitting }) => {
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-1">
               <h3 className="text-xl font-bold text-gray-900">{meal.name}</h3>
-              <span className="text-xl">{meal.emoji}</span>
+              {/* <span className="text-xl">{meal.emoji}</span> */}
             </div>
             <p className="text-sm text-gray-600 mb-1">{meal.description}</p>
             <div className="flex items-center space-x-2 text-xs text-gray-500">
@@ -852,10 +864,10 @@ const MealFeedbackCard = ({ meal, feedback, status, onSubmit, submitting }) => {
             <button
               onClick={handleSubmit}
               disabled={submitting || isSubmitting || !rating}
-              className={`w-full py-4 px-6 rounded-xl font-semibold text-white transition-all duration-300 transform ${
+              className={`w-full py-4 px-6 rounded-xl font-semibold text-white shadow-lg ${
                 !rating || submitting || isSubmitting
                   ? 'bg-gray-400 cursor-not-allowed'
-                  : `bg-gradient-to-r ${meal.bgColor} hover:scale-105 hover:shadow-lg active:scale-95`
+                  : `bg-gradient-to-r ${meal.bgColor}`
               }`}
             >
               {isSubmitting ? (
@@ -882,12 +894,12 @@ const MealFeedbackCard = ({ meal, feedback, status, onSubmit, submitting }) => {
             </div>
             <h4 className="font-semibold text-gray-600 mb-2">Feedback Not Available</h4>
             <p className="text-sm text-gray-500 mb-3">
-              Come back during meal time to share your experience
+              Come back after meal time to share your experience
             </p>
             <div className="inline-flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-lg">
               <FaClock className="text-xs text-gray-500" />
               <span className="text-xs text-gray-600 font-medium">
-                Available {meal.time}
+                Available from {meal.availableFrom}
               </span>
             </div>
           </div>

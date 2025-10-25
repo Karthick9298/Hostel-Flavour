@@ -50,8 +50,8 @@ const Navbar = () => {
             to="/dashboard" 
             className="flex items-center space-x-2 text-xl font-bold text-primary-600"
           >
-            <FaUtensils className="text-2xl" />
-            <span>Hostel Food Analysis</span>
+          <FaUtensils className="text-2xl" />
+            <span>GVP Hostel Flavour</span>
           </Link>
 
           {/* Desktop Navigation */}
