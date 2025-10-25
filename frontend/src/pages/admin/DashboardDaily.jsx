@@ -307,20 +307,49 @@ const DailyAnalysisDashboard = () => {
                       
                       {/* Detailed Sentiment Information */}
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                        {Object.entries(dailyData.sentimentAnalysisPerMeal || {}).map(([meal, data], index) => (
-                          <div key={meal} className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-                            <h5 className="font-bold text-lg text-gray-900 mb-4 flex items-center space-x-2">
-                              {getMealIcon(meal.toLowerCase())}
-                              <span>{meal}</span>
-                              <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
-                                data.sentiment_color === 'green' ? 'bg-green-100 text-green-800' :
-                                data.sentiment_color === 'red' ? 'bg-red-100 text-red-800' :
-                                data.sentiment_color === 'yellow' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                {data.dominant_sentiment}
-                              </span>
-                            </h5>
+                        {Object.entries(dailyData.sentimentAnalysisPerMeal || {}).map(([meal, data], index) => {
+                          // Determine status based on average rating
+                          const avgRating = data.average_rating || 0;
+                          const negativePercentage = data.sentiment_distribution?.negative?.percentage || 0;
+                          
+                          let statusIcon = '🟢';
+                          let statusText = 'Performing Well';
+                          let statusColor = 'green';
+                          let cardBorder = 'border-green-200';
+                          let cardBg = 'bg-green-50';
+                          
+                          if (avgRating < 2.5 || negativePercentage >= 50) {
+                            statusIcon = '🔴';
+                            statusText = 'Urgent Action Required';
+                            statusColor = 'red';
+                            cardBorder = 'border-red-300';
+                            cardBg = 'bg-red-50';
+                          } else if (avgRating < 3.5 || negativePercentage >= 30) {
+                            statusIcon = '🟡';
+                            statusText = 'Needs Attention';
+                            statusColor = 'yellow';
+                            cardBorder = 'border-yellow-300';
+                            cardBg = 'bg-yellow-50';
+                          }
+                          
+                          return (
+                          <div key={meal} className={`bg-white rounded-xl p-6 shadow-md border-2 ${cardBorder} ${cardBg} bg-opacity-30`}>
+                            <div className="flex items-start justify-between mb-4">
+                              <h5 className="font-bold text-lg text-gray-900 flex items-center space-x-2">
+                                {getMealIcon(meal.toLowerCase())}
+                                <span>{meal}</span>
+                              </h5>
+                              <div className="flex flex-col items-end">
+                                <span className="text-2xl mb-1">{statusIcon}</span>
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                  statusColor === 'green' ? 'bg-green-100 text-green-800' :
+                                  statusColor === 'red' ? 'bg-red-100 text-red-800' :
+                                  'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                  {statusText}
+                                </span>
+                              </div>
+                            </div>
                             
                             <div className="space-y-4">
                               <div className="flex justify-between items-center">
@@ -334,7 +363,7 @@ const DailyAnalysisDashboard = () => {
                               </div>
 
                               {/* Sentiment Distribution */}
-                              {data.sentiment_distribution && (
+                              {/* {data.sentiment_distribution && (
                                 <div className="bg-gray-50 p-4 rounded-lg">
                                   <h6 className="font-medium text-gray-900 mb-3">Sentiment Breakdown:</h6>
                                   <div className="space-y-2">
@@ -364,128 +393,155 @@ const DailyAnalysisDashboard = () => {
                                     </div>
                                   </div>
                                 </div>
-                              )}
+                              )} */}
 
-                              {/* Key Insights */}
-                              {data.key_insights && data.key_insights.length > 0 && (
+                              {/* Admin Action Items - Only show negative feedback */}
+                              {data.improvement_areas && data.improvement_areas.length > 0 ? (
                                 <div>
-                                  <p className="text-sm font-medium text-blue-700 mb-2 flex items-center">
-                                    <FaLightbulb className="mr-1" /> Key Insights:
+                                  <p className="text-sm font-semibold text-red-700 mb-3 flex items-center">
+                                    <FaExclamationTriangle className="mr-2" /> 
+                                    Admin Action Required ({data.improvement_areas.length} issues)
                                   </p>
-                                  <ul className="text-sm text-gray-700 space-y-1">
-                                    {data.key_insights.map((insight, i) => (
-                                      <li key={i} className="text-xs bg-blue-50 p-2 rounded border-l-2 border-blue-200">
-                                        {insight}
+                                  <ul className="text-sm space-y-2">
+                                    {data.improvement_areas.slice(0, 3).map((comment, i) => (
+                                      <li key={i} className="flex items-start space-x-2 bg-red-50 p-3 rounded-lg border-l-4 border-red-500">
+                                        <span className="text-red-600 font-bold text-xs mt-0.5">#{i + 1}</span>
+                                        <span className="text-gray-800 flex-1">"{comment}"</span>
                                       </li>
                                     ))}
+                                    {data.improvement_areas.length > 3 && (
+                                      <li className="text-xs text-gray-500 italic pl-6">
+                                        +{data.improvement_areas.length - 3} more complaints - review all feedback
+                                      </li>
+                                    )}
                                   </ul>
                                 </div>
-                              )}
-                              
-                              {data.positive_highlights && data.positive_highlights.length > 0 && (
-                                <div>
-                                  <p className="text-sm font-medium text-green-700 mb-2 flex items-center">
-                                    <FaCheckCircle className="mr-1" /> Positive Highlights:
+                              ) : (
+                                <div className="bg-green-50 p-3 rounded-lg border-l-4 border-green-500">
+                                  <p className="text-sm font-medium text-green-700 flex items-center">
+                                    <FaCheckCircle className="mr-2" />
+                                    No negative feedback - Continue current standards
                                   </p>
-                                  <ul className="text-sm text-gray-700 space-y-1">
-                                    {data.positive_highlights.map((comment, i) => (
-                                      <li key={i} className="text-xs bg-green-50 p-2 rounded">"{comment}"</li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                              
-                              {data.improvement_areas && data.improvement_areas.length > 0 && (
-                                <div>
-                                  <p className="text-sm font-medium text-red-700 mb-2 flex items-center">
-                                    <FaExclamationTriangle className="mr-1" /> Improvement Areas:
-                                  </p>
-                                  <ul className="text-sm text-gray-700 space-y-1">
-                                    {data.improvement_areas.map((comment, i) => (
-                                      <li key={i} className="text-xs bg-red-50 p-2 rounded">"{comment}"</li>
-                                    ))}
-                                  </ul>
                                 </div>
                               )}
                             </div>
                           </div>
-                        ))}
+                        );
+                        })}
                       </div>
                     </div>
 
-                    {/* 5. Enhanced AI-Powered Overall Summary */}
+                    {/* 5. Enhanced Overall Summary - Priority Action Dashboard */}
                     {dailyData.overallSummary && (
-                      <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-2xl p-8 border border-indigo-200">
-                        <h4 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
-                          <FaRobot className="text-purple-600 text-2xl" />
-                          <span>AI-Powered Analysis & Recommendations</span>
-                        </h4>
+                      <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 rounded-2xl p-8 border-2 border-indigo-200 shadow-lg">
+                        <div className="flex items-center justify-between mb-6">
+                          <h4 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
+                            <FaChartLine className="text-indigo-600 text-2xl" />
+                            <span>Daily Action Dashboard</span>
+                          </h4>
+                          <div className="text-xs text-gray-500">
+                            {new Date().toLocaleDateString('en-US', { 
+                              weekday: 'long', 
+                              month: 'long', 
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </div>
+                        </div>
 
                         {/* Performance Summary Banner */}
                         {dailyData.overallSummary.performance_summary && (
-                          <div className="bg-white rounded-xl p-4 mb-6 border-l-4 border-blue-500">
+                          <div className="bg-white rounded-xl p-4 mb-6 border-l-4 border-indigo-500 shadow-sm">
                             <h5 className="font-bold text-gray-900 mb-2 flex items-center">
-                              <FaChartLine className="text-blue-500 mr-2" />
-                              Performance Summary
+                              <FaCheckCircle className="text-indigo-500 mr-2" />
+                              Overall Status
                             </h5>
-                            <p className="text-gray-700 text-sm">{dailyData.overallSummary.performance_summary}</p>
+                            <p className="text-gray-700 text-sm font-mono">{dailyData.overallSummary.performance_summary}</p>
                           </div>
                         )}
                         
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          {/* Key Insights */}
-                          <div className="bg-white rounded-xl p-6 shadow-sm">
-                            <h5 className="font-bold text-lg text-gray-900 mb-4 flex items-center space-x-2">
-                              <FaLightbulb className="text-yellow-500" />
-                              <span>Key Insights (AI Analysis)</span>
-                            </h5>
-                            {dailyData.overallSummary.key_insights && dailyData.overallSummary.key_insights.length > 0 ? (
+                        <div className="space-y-6">
+                          {/* Priority Actions - Focus on what needs fixing */}
+                          {dailyData.overallSummary.critical_actions && dailyData.overallSummary.critical_actions.length > 0 && (
+                            <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-red-500">
+                              <h5 className="font-bold text-lg text-gray-900 mb-4 flex items-center space-x-2">
+                                <FaExclamationTriangle className="text-red-500 text-xl" />
+                                <span>🎯 Priority Actions (Do These First)</span>
+                              </h5>
                               <div className="space-y-3">
-                                {dailyData.overallSummary.key_insights.map((insight, index) => (
-                                  <div key={index} className={`p-3 rounded-lg border-l-4 ${
-                                    insight.includes('🔴') ? 'bg-red-50 border-red-400' :
-                                    insight.includes('🟡') ? 'bg-yellow-50 border-yellow-400' :
-                                    insight.includes('🟢') ? 'bg-green-50 border-green-400' :
-                                    insight.includes('⚠️') ? 'bg-orange-50 border-orange-400' :
-                                    'bg-blue-50 border-blue-400'
-                                  }`}>
-                                    <p className="text-sm font-medium text-gray-800">{insight}</p>
-                                  </div>
-                                ))}
+                                {dailyData.overallSummary.critical_actions.slice(0, 3).map((action, index) => {
+                                  // Determine priority based on position
+                                  const priorityIcon = index === 0 ? '🔴' : index === 1 ? '🟡' : '🟢';
+                                  const priorityLabel = index === 0 ? 'CRITICAL' : index === 1 ? 'HIGH' : 'MEDIUM';
+                                  const priorityColor = index === 0 ? 'red' : index === 1 ? 'yellow' : 'green';
+                                  
+                                  return (
+                                    <div key={index} className={`flex items-start space-x-3 p-4 rounded-lg border-2 ${
+                                      priorityColor === 'red' ? 'bg-red-50 border-red-200' :
+                                      priorityColor === 'yellow' ? 'bg-yellow-50 border-yellow-200' :
+                                      'bg-green-50 border-green-200'
+                                    }`}>
+                                      <div className="flex-shrink-0 flex flex-col items-center">
+                                        <span className="text-2xl mb-1">{priorityIcon}</span>
+                                        <span className={`text-xs font-bold px-2 py-1 rounded ${
+                                          priorityColor === 'red' ? 'bg-red-200 text-red-800' :
+                                          priorityColor === 'yellow' ? 'bg-yellow-200 text-yellow-800' :
+                                          'bg-green-200 text-green-800'
+                                        }`}>
+                                          {priorityLabel}
+                                        </span>
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="flex items-center space-x-2 mb-2">
+                                          <span className="font-bold text-gray-900">Action {index + 1}:</span>
+                                        </div>
+                                        <p className="text-sm text-gray-800 font-medium leading-relaxed">{action}</p>
+                                        <div className="mt-2 flex items-center space-x-4 text-xs text-gray-600">
+                                          <span className="flex items-center">
+                                            <FaClock className="mr-1" />
+                                            Deadline: {index === 0 ? 'Today' : index === 1 ? '2 days' : 'This week'}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
                               </div>
-                            ) : (
-                              <p className="text-gray-500 text-sm">No specific insights available for analysis.</p>
-                            )}
-                          </div>
+                            </div>
+                          )}
                           
-                          {/* Critical Actions */}
-                          <div className="bg-white rounded-xl p-6 shadow-sm">
-                            <h5 className="font-bold text-lg text-gray-900 mb-4 flex items-center space-x-2">
-                              <FaExclamationTriangle className="text-red-500" />
-                              <span>Critical Actions Required</span>
-                            </h5>
-                            {dailyData.overallSummary.critical_actions && dailyData.overallSummary.critical_actions.length > 0 ? (
-                              <div className="space-y-2">
-                                {dailyData.overallSummary.critical_actions.map((action, index) => (
-                                  <div key={index} className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                          {/* Key Focus Areas - Simplified to 2-3 points */}
+                          {dailyData.overallSummary.key_insights && dailyData.overallSummary.key_insights.length > 0 && (
+                            <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-blue-500">
+                              <h5 className="font-bold text-lg text-gray-900 mb-4 flex items-center space-x-2">
+                                <FaLightbulb className="text-blue-500 text-xl" />
+                                <span>📊 Key Insights (What's Happening)</span>
+                              </h5>
+                              <div className="space-y-3">
+                                {dailyData.overallSummary.key_insights.slice(0, 3).map((insight, index) => (
+                                  <div key={index} className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
                                     <div className="flex-shrink-0">
-                                      <span className="flex items-center justify-center w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full">
+                                      <span className="flex items-center justify-center w-7 h-7 bg-blue-500 text-white text-sm font-bold rounded-full">
                                         {index + 1}
                                       </span>
                                     </div>
-                                    <p className="text-sm text-gray-800 font-medium">{action}</p>
+                                    <p className="text-sm font-medium text-gray-800 pt-1">{insight}</p>
                                   </div>
                                 ))}
                               </div>
-                            ) : (
-                              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                                <p className="text-green-700 text-sm flex items-center">
-                                  <FaCheckCircle className="mr-2" />
-                                  No critical actions required - keep maintaining current standards!
-                                </p>
+                            </div>
+                          )}
+
+                          {/* Show "All Good" message if no critical actions */}
+                          {(!dailyData.overallSummary.critical_actions || dailyData.overallSummary.critical_actions.length === 0) && (
+                            <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-green-500">
+                              <div className="text-center py-4">
+                                <FaCheckCircle className="text-5xl text-green-500 mx-auto mb-3" />
+                                <h5 className="font-bold text-xl text-green-800 mb-2">All Systems Good! 🎉</h5>
+                                <p className="text-gray-700">No critical issues detected. Continue maintaining quality standards.</p>
                               </div>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
 
                         {/* Legacy Support - Show old format if new format not available */}

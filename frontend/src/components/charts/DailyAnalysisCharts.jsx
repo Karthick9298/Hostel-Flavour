@@ -413,17 +413,19 @@ export const SentimentScoreChart = ({ data, mealName, title }) => {
 
   return (
     <div className="bg-white rounded-xl p-4 shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300 relative">
-      <div className="h-48 relative">
-        <Doughnut data={chartData} options={options} />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center mt-4">
-            <div className={`text-2xl font-bold ${
+      <div className="h-56 relative">
+        <div className="h-40">
+          <Doughnut data={chartData} options={options} />
+        </div>
+        <div className="absolute top-0 left-0 right-0 bottom-0 flex items-end justify-center pb-2">
+          <div className="text-center">
+            <div className={`text-3xl font-bold ${
               sentimentScore >= 80 ? 'text-green-600' : 
               sentimentScore >= 60 ? 'text-yellow-600' : 'text-red-600'
             }`}>
               {sentimentScore}%
             </div>
-            <div className="text-xs text-gray-600">Satisfaction</div>
+            <div className="text-xs text-gray-600 font-medium">Satisfaction</div>
           </div>
         </div>
       </div>

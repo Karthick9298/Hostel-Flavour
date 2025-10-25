@@ -98,10 +98,10 @@ const Login = () => {
         <div className="text-center">
           <div className="flex justify-center items-center space-x-2 mb-4">
             <FaUtensils className="text-4xl text-primary-600" />
-            <h1 className="text-3xl font-bold text-gray-900">HFA</h1>
+            <h1 className="text-3xl font-bold text-gray-900">GVP</h1>
           </div>
           <h2 className="text-2xl font-semibold text-gray-700">
-            Hostel Food Analysis
+            Hostel Flavour
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Sign in to submit your food feedback
